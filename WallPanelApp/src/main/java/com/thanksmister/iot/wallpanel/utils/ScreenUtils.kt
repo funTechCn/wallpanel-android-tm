@@ -87,7 +87,11 @@ constructor(context: Context, private val configuration: Configuration): Context
                     Settings.System.putInt(contentResolver, Settings.System.SCREEN_BRIGHTNESS, brightness)
                     configuration.screenBrightness = brightness
                     if(configuration.screenSaverDimValue > 0) {
-                        val dimAmount = brightness - (brightness * configuration.screenSaverDimValue/100)
+                        val dimAmount = if (configuration.screenSaverDimValue >= 99) {
+                            1
+                        } else {
+                            brightness - (brightness * configuration.screenSaverDimValue / 100)
+                        }
                         configuration.screenScreenSaverBrightness = dimAmount
                     } else {
                         configuration.screenScreenSaverBrightness = brightness
@@ -109,7 +113,13 @@ constructor(context: Context, private val configuration: Configuration): Context
             configuration.screenBrightness = getCurrentScreenBrightness()
             try {
                 if(configuration.screenSaverDimValue > 0) {
-                    val dimAmount = configuration.screenBrightness - (configuration.screenBrightness * configuration.screenSaverDimValue/100)
+//                    val dimAmount = configuration.screenBrightness - (configuration.screenBrightness * configuration.screenSaverDimValue/100)
+                    val dimAmount = if (configuration.screenSaverDimValue >= 99) {
+                        1
+                    } else {
+                        configuration.screenBrightness - (configuration.screenBrightness * configuration.screenSaverDimValue/100)
+//                        brightness - (brightness * configuration.screenSaverDimValue / 100)
+                    }
                     configuration.screenScreenSaverBrightness = dimAmount
                 } else {
                     configuration.screenScreenSaverBrightness = configuration.screenBrightness

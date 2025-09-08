@@ -197,6 +197,10 @@ dependencies {
     // Picasso image loading
     implementation 'com.squareup.picasso:picasso:2.71828'
 
+    //firefox
+//    implementation "org.mozilla.geckoview:geckoview:91.13.0"
+//    implementation "org.mozilla.geckoview:geckoview-armeabi-v7a:79.0.20200813192915"
+//    implementation "org.mozilla.geckoview:geckoview-armeabi-v7a:91.0.20210830133508"
     // Glide for image loading
     implementation 'com.github.bumptech.glide:glide:4.11.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'

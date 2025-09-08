@@ -270,6 +270,14 @@ class BrowserActivityNative : BaseBrowserActivity(), LifecycleObserver {
         if (configuration.hardwareAccelerated && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             // chromium, enable hardware acceleration
             mWebView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+            // 步骤 2: 使用透明背景技巧，尝试规避 GPU 驱动 Bug
+            mWebView.setBackgroundColor(0x00000000) // 完全透明
+//            mWebView.webChromeClient
+//            mWebView.webViewClient
+//            mWebView.webViewRenderProcessClient
+
+//            mWebView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+
         } else {
             // older android version, disable hardware acceleration
             mWebView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
@@ -320,6 +328,7 @@ class BrowserActivityNative : BaseBrowserActivity(), LifecycleObserver {
         if(webSettings == null) {
             webSettings = mWebView.settings
         }
+//        webSettings = mWebView.settings
         webSettings?.javaScriptEnabled = true
         webSettings?.domStorageEnabled = true
         webSettings?.databaseEnabled = true
@@ -329,12 +338,17 @@ class BrowserActivityNative : BaseBrowserActivity(), LifecycleObserver {
         webSettings?.allowFileAccess = true
         webSettings?.allowFileAccessFromFileURLs = true
         webSettings?.allowContentAccess = true
-        webSettings?.setSupportZoom(true)
+//        webSettings?.setSupportZoom(true)
         webSettings?.loadWithOverviewMode = true
         webSettings?.useWideViewPort = true
         webSettings?.pluginState = WebSettings.PluginState.ON
         webSettings?.setRenderPriority(WebSettings.RenderPriority.HIGH);
        // webSettings?.cacheMode = WebSettings.LOAD_NO_CACHE;
+
+
+        webSettings?.cacheMode = WebSettings.LOAD_CACHE_ELSE_NETWORK // 优先从缓存加载
+        webSettings?.setSupportZoom(false) // 如果你不需要缩放，关闭它可以减少开销
+        webSettings?.setMediaPlaybackRequiresUserGesture(false)
 
         if (userAgent.isNotEmpty()) {
             webSettings?.userAgentString = userAgent

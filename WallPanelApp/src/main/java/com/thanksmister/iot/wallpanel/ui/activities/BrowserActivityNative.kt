@@ -25,7 +25,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.view.*
-import android.webkit.*
+//import android.webkit.*
 import android.widget.Button
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -36,6 +36,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleObserver
 import com.google.android.material.snackbar.Snackbar
+import com.tencent.smtt.export.external.interfaces.JsResult
 import com.thanksmister.iot.wallpanel.BuildConfig
 import com.thanksmister.iot.wallpanel.R
 import com.thanksmister.iot.wallpanel.network.ConnectionLiveData
@@ -44,7 +45,11 @@ import kotlinx.android.synthetic.main.activity_browser.*
 import timber.log.Timber
 import java.util.*
 import java.util.concurrent.TimeUnit
-
+import com.tencent.smtt.sdk.*
+import com.tencent.smtt.export.external.interfaces.PermissionRequest
+import com.tencent.smtt.export.external.interfaces.SslErrorHandler
+import com.tencent.smtt.utils.TbsLogClient
+import java.util.concurrent.CountDownLatch
 
 class BrowserActivityNative : BaseBrowserActivity(), LifecycleObserver {
 
@@ -80,10 +85,80 @@ class BrowserActivityNative : BaseBrowserActivity(), LifecycleObserver {
         }
     }
 
+    private fun preDownloadX5() {
+        // 1. 设置日志捕捉
+        QbSdk.setTbsLogClient(object : TbsLogClient(this) {
+            override fun writeLog(msg: String?) {
+                Timber.tag("X5").e(msg)
+            }
+            override fun showLog(msg: String?) {
+                Timber.tag("X5").d(msg)
+            }
+        })
+
+        // 3. 设置是否允许下载 X5 内核（可选）
+        val map = HashMap<String, Any>()
+        QbSdk.initTbsSettings(map)
+
+        // 4. 设置下载监听
+        QbSdk.setTbsListener(object : TbsListener {
+            override fun onDownloadFinish(code: Int) {
+                Timber.tag("X5").e("内核下载完成: $code")
+            }
+
+            override fun onInstallFinish(code: Int) {
+                Timber.tag("X5").e("内核安装完成: $code")
+            }
+
+            override fun onDownloadProgress(progress: Int) {
+                Timber.tag("X5").e("下载进度: $progress%")
+            }
+        })
+
+        // 5. 初始化内核
+        val cb = object : QbSdk.PreInitCallback {
+            override fun onViewInitFinished(success: Boolean) {
+                Timber.tag("X5").i("X5 内核初始化结果: $success")
+            }
+
+            override fun onCoreInitFinished() {
+                Timber.tag("X5").i("X5 内核核心加载完成")
+            }
+        }
+
+        QbSdk.setDownloadWithoutWifi(true)
+
+        val latch = CountDownLatch(1)
+        var success = false
+
+        QbSdk.initX5Environment(applicationContext, object : QbSdk.PreInitCallback {
+            override fun onCoreInitFinished() {
+                // 内核初始化结束
+            }
+
+            override fun onViewInitFinished(isX5Core: Boolean) {
+                success = isX5Core
+                latch.countDown()
+            }
+        })
+
+        try {
+            // 阻塞等待，最多等 20 秒
+            latch.await(20, TimeUnit.SECONDS)
+        } catch (e: InterruptedException) {
+            e.printStackTrace()
+        }
+
+//        QbSdk.initX5Environment(applicationContext, cb)
+    }
+
+
+
     @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
+        preDownloadX5()
 
         if (BuildConfig.DEBUG) {
             configuration.mqttBroker = BuildConfig.BROKER
@@ -202,8 +277,7 @@ class BrowserActivityNative : BaseBrowserActivity(), LifecycleObserver {
                     startReloadDelay()
                 }
             }
-
-            override fun onReceivedSslError(view: WebView, handler: SslErrorHandler?, error: SslError?) {
+            fun onReceivedSslError(view: WebView, handler: SslErrorHandler?, error: SslError?) {
                 if (!certPermissionsShown && !isFinishing && !configuration.ignoreSSLErrors) {
                     var message = getString(R.string.dialog_message_ssl_generic)
                     when (error?.primaryError) {
@@ -336,7 +410,8 @@ class BrowserActivityNative : BaseBrowserActivity(), LifecycleObserver {
         webSettings?.javaScriptCanOpenWindowsAutomatically = true
         webSettings?.setAppCacheEnabled(true)
         webSettings?.allowFileAccess = true
-        webSettings?.allowFileAccessFromFileURLs = true
+//        webSettings?.allowFileAccessFromFileURLs = true
+        webSettings?.setAllowFileAccessFromFileURLs(true)
         webSettings?.allowContentAccess = true
 //        webSettings?.setSupportZoom(true)
         webSettings?.loadWithOverviewMode = true
@@ -355,7 +430,7 @@ class BrowserActivityNative : BaseBrowserActivity(), LifecycleObserver {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            webSettings?.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+//            webSettings?.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         }
     }
 

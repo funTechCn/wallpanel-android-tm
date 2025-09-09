@@ -32,7 +32,7 @@
             android:layout_height="match_parent"
             android:windowSoftInputMode="adjustResize">
 
-            <WebView
+            <com.tencent.smtt.sdk.WebView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:id="@+id/activity_browser_webview_native"

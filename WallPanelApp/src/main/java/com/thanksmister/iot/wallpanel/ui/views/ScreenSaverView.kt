@@ -29,7 +29,7 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
-import android.webkit.*
+//import android.webkit.*
 import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -38,12 +38,16 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.NetworkPolicy
 import com.squareup.picasso.Picasso
+import com.tencent.smtt.export.external.interfaces.JsResult
 import com.thanksmister.iot.wallpanel.R
 import com.thanksmister.iot.wallpanel.persistence.Configuration.Companion.WEB_SCREEN_SAVER
 import kotlinx.android.synthetic.main.dialog_screen_saver.view.*
 import timber.log.Timber
 import java.util.*
 import java.util.concurrent.TimeUnit
+import com.tencent.smtt.sdk.*
+//import com.tencent.smtt.export.external.interfaces.PermissionRequest
+import com.tencent.smtt.export.external.interfaces.SslErrorHandler
 
 class ScreenSaverView : RelativeLayout {
 
@@ -206,7 +210,7 @@ class ScreenSaverView : RelativeLayout {
             }
 
             // TODO we need to load SSL certificates
-            override fun onReceivedSslError(view: WebView, handler: SslErrorHandler?, error: SslError?) {
+            fun onReceivedSslError(view: WebView, handler: SslErrorHandler?, error: SslError?) {
                 if (!certPermissionsShown) {
                     var message = context.getString(R.string.dialog_message_ssl_generic)
                     when (error?.primaryError) {
@@ -249,7 +253,7 @@ class ScreenSaverView : RelativeLayout {
             webSettings?.userAgentString = userAgent
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            webSettings?.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+//            webSettings?.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         }
         Timber.d(webSettings?.userAgentString)
     }
